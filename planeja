@@ -1,0 +1,1933 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3622f3cc-acef-4129-ab1d-d823148c63a7",
+              "name": "texto",
+              "value": "={{ $('Webhook').item.json.body.data.message.conversation }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1216,
+        80
+      ],
+      "id": "ec1b859a-59bf-4f82-98bb-94718042e720",
+      "name": "Edit Fields",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.texto }}",
+        "options": {
+          "systemMessage": "=## 🎯 Prompt do Agente Roteador — ZapGest\n\nVocê é um **agente roteador inteligente** do SaaS **ZapGest**. Sua única função é interpretar a **mensagem do usuário enviada via WhatsApp**, identificar **qual ferramenta deve ser acionada** e **responder apenas com o retorno gerado pela ferramenta** correspondente.\n\n---\n\n### 🧰 Ferramentas disponíveis:\n\n- **Registrar Transacao**  \n  Para registrar uma transação única.  \n  **Exemplos:**  \n  > \"Paguei 10\"  \n  > \"Gastei 50 reais com mercado hoje\"  \n  > \"Recebi 120 de um serviço de design\"\n  > Ou ao receber ao informações de transação entenda como uma.\n\n- **Deletar**  \n  Para apagar uma transação.  \n  **Exemplos:**  \n  > \"Apaga o gasto com cinema de ontem\"  \n  > \"Remove aquela entrada de 30 reais que registrei por engano\"\n\n- **Relatorios**  \n  Para gerar relatorios.  \n  **Exemplos:**  \n  > \"Quero um relatorio\"  \n  > \"Relatorios de hoje\"\n\n- **Generico**  \n  Para perguntas gerais e fora do escopo financeiro direto.  \n  **Exemplos:**  \n  > \"Como o GranaFy funciona?\"  \n  > \"Vocês têm suporte?\"  \n  > \"Consigo exportar meus dados?\"\n\n---\n\n### ⚙️ Regras do Agente:\n\n1. Interprete a mensagem e acione **apenas a ferramenta correta**.\n2. **NÃO responda nada além do retorno da ferramenta acionada**.\n3. Responda somente a resposta retornada pela ferramenta.\n3. NÃO misture categorias, como lembretes e transações."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1936,
+        192
+      ],
+      "id": "1e7975bb-444a-4331-8cb0-d7c1e10474b2",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agente",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1824,
+        448
+      ],
+      "id": "a14dd5ae-2b7c-4790-ac68-8aafeba9b14d",
+      "name": "Webhook",
+      "webhookId": "36a24059-bfed-41b6-9b8f-7bc0671dd73c"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a1d15e5e-e0ac-47ce-a985-a672bb6411ae",
+              "leftValue": "={{ $json.user_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -912,
+        448
+      ],
+      "id": "8580fbc6-eeee-4359-80fb-734db5d0f00b",
+      "name": "É cadastrado?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f9c7d85d-229f-4cde-84aa-2967370a6487",
+              "leftValue": "={{ $('Buscar AccountId').item.json.tem_plano }}",
+              "rightValue": "=ativo",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -512,
+        336
+      ],
+      "id": "184081b4-e589-46f2-bb1a-e821fd30f5c1",
+      "name": "Tem acesso?"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "usuarios",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Buscar AccountId').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "mensagens",
+              "fieldValue": "={{ $('Buscar AccountId').item.json.mensagens+1 }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2720,
+        -32
+      ],
+      "id": "cb569b46-f296-4e89-921d-5a4052d42012",
+      "name": "Atualizar Transactions",
+      "credentials": {
+        "supabaseApi": {
+          "id": "l9d8JvY4jmkrmKTv",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Webhook').item.json.body.data.messageType }}",
+                    "rightValue": "conversation",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "6e954b35-6368-4ce8-a970-82a7da3f9938"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "conversation"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c8fae2b8-f0c1-4f46-9654-5b2d1e27ffc2",
+                    "leftValue": "={{ $('Webhook').item.json.body.data.messageType }}",
+                    "rightValue": "audioMessage",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "audioMessage"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "5d935230-037e-48cc-b662-50122dbd9c3d",
+                    "leftValue": "={{ $('Webhook').item.json.body.data.messageType }}",
+                    "rightValue": "imageMessage",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "imageMessage"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        464,
+        80
+      ],
+      "id": "89d4a32e-4aab-48fa-bf4f-2700bd7e9046",
+      "name": "messageType"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "usuarios",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "telefone",
+              "keyValue": "={{ $json.numero }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1392,
+        448
+      ],
+      "id": "808500b0-6799-473a-bba9-742df9cfdec1",
+      "name": "Buscar AccountId",
+      "alwaysOutputData": true,
+      "executeOnce": false,
+      "credentials": {
+        "supabaseApi": {
+          "id": "l9d8JvY4jmkrmKTv",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b66e53e5-82a4-494a-b942-47dce1ab6ada",
+              "name": "texto",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1472,
+        336
+      ],
+      "id": "841fe12c-e911-4814-866c-81485b8a9b20",
+      "name": "Edit Fields1",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "af1eba45-6e41-4a6e-af4c-07935adfe9b6",
+              "name": "data",
+              "value": "={{ $json.data.base64 }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        928,
+        336
+      ],
+      "id": "e220bb93-980c-417b-8786-d166401080c8",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1296,
+        336
+      ],
+      "id": "0b511b74-4527-4901-b7e6-2a6adbbe6d6b",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "XCLyfYttN0iCMHMg",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data",
+        "options": {
+          "mimeType": "audio/mpeg"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        336
+      ],
+      "id": "792a2a25-37d7-45a7-87bb-41ecff02ea38",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "09b89327-2e4d-4436-b0bc-1c8069a0d7cd",
+              "name": "texto",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1472,
+        528
+      ],
+      "id": "7d07e783-6ca7-4499-9b02-62ef6cc8913a",
+      "name": "Edit Fields4",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "af1eba45-6e41-4a6e-af4c-07935adfe9b6",
+              "name": "data",
+              "value": "={{ $json.data.base64 }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        928,
+        528
+      ],
+      "id": "5a93293d-6760-40ca-9371-0bf57ae1ee44",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "text": "Extraia apenas o texto visível da imagem enviada. Não adicione interpretações, descrições ou comentários. Retorne somente o texto puro exatamente como aparece na imagem.",
+        "inputType": "base64",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1296,
+        528
+      ],
+      "id": "258ed004-7426-440d-a053-3ec895c3ed81",
+      "name": "OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "XCLyfYttN0iCMHMg",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data",
+        "options": {
+          "mimeType": "image/jpeg"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        528
+      ],
+      "id": "da85edd4-754d-4803-b7cc-c3fec76a0516",
+      "name": "Convert to File1"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        528
+      ],
+      "id": "36dba381-cd2e-4aa1-97ad-9ad73917ccab",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "instanceName": "Planeja+",
+        "token": "048A28E04E63-4157-93D1-80E591AB5D7A",
+        "options_Create_instance": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        752,
+        336
+      ],
+      "id": "7dea8217-1200-4709-8784-205257df592c",
+      "name": "Obter m dia em base64",
+      "credentials": {
+        "evolutionApi": {
+          "id": "YvKiZGjUQiq1lqlt",
+          "name": "Evolution account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "instanceName": "Planeja+",
+        "options_Create_instance": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        752,
+        528
+      ],
+      "id": "d6370f20-dbf4-4ede-a62a-30313322965d",
+      "name": "Obter m dia em base",
+      "credentials": {
+        "evolutionApi": {
+          "id": "YvKiZGjUQiq1lqlt",
+          "name": "Evolution account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "Planeja+",
+        "remoteJid": "={{ $('Buscar AccountId').item.json.telefone }}",
+        "messageText": "={{ $json.output }}",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        2464,
+        -32
+      ],
+      "id": "f7974f35-cc59-4fd1-a265-6beb085db690",
+      "name": "Enviar texto",
+      "credentials": {
+        "evolutionApi": {
+          "id": "YvKiZGjUQiq1lqlt",
+          "name": "Evolution account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2624,
+        960
+      ],
+      "id": "a819f431-e40d-4bed-8cd9-bc47638c4720",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "6E26Ks679V7jcKbw",
+          "name": "OpenAi account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=Você é um agente responsável por registrar transações financeiras.\n\nSempre que receber uma nova transação, siga os seguintes passos:\n\n1. **Registrar transação:** Após obter a categoria (ou definir como `\"Padrão\"`), use a tool `Registrar` para salvar a transação.\n\n### Formato de resposta (sempre que a transação for registrada com sucesso):\n\n```\n✅ Transação registrada!\n\nID: {{ $('identificador').item.json.codigo }} | 💰 R${{valor}} | {{emoji}} {{tipo}}\n📄 Descrição: {{descrição}}(Detalhado - se não informado crie)\n📅 Data: {{data}}(Formato dd-mm-yyyy)\n📌 Status: Pago ou Pendente\n\n❌ Para excluir, envie: {{ $('identificador').item.json.codigo }}\n```\n\n**Legenda do emoji de tipo:**\n\n* 🔴 para **Despesa**\n* 🟢 para **Receita**\n\nData/Hora Atual: {{ $now }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        2272,
+        432
+      ],
+      "id": "29bd4418-9857-4a64-9fcb-9f43fb6445df",
+      "name": "Registrar Transacao"
+    },
+    {
+      "parameters": {
+        "tableId": "transacoes",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "descricao",
+              "fieldValue": "={{ $fromAI('fieldValues0_Field_Value', `Descrição detalhada da transaçao`, 'string') }}"
+            },
+            {
+              "fieldId": "valor",
+              "fieldValue": "={{ $fromAI('fieldValues1_Field_Value', `Valor da transação`, 'string') }}"
+            },
+            {
+              "fieldId": "tipo",
+              "fieldValue": "={{ $fromAI('fieldValues2_Field_Value', `Tipo se é \"entrada\" ou \"saida\"`, 'string') }}"
+            },
+            {
+              "fieldId": "data",
+              "fieldValue": "={{ $fromAI('fieldValues3_Field_Value', `Data do evento no formato: yyyy-mm-dd`, 'string') }}"
+            },
+            {
+              "fieldId": "esta_pago",
+              "fieldValue": "={{ $fromAI('fieldValues4_Field_Value', `Se esta pago ou não: \"true\" ou \"false\"`, 'string') }}"
+            },
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $('user_id').item.json.user_id }}"
+            },
+            {
+              "fieldId": "identificador",
+              "fieldValue": "={{ $('identificador').item.json.codigo }}"
+            },
+            {
+              "fieldId": "time",
+              "fieldValue": "={{ $now.toMillis() }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        2528,
+        624
+      ],
+      "id": "4b3dc521-2eb7-4f30-9f00-fd62eee5cca8",
+      "name": "Registrar",
+      "credentials": {
+        "supabaseApi": {
+          "id": "l9d8JvY4jmkrmKTv",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=Você é o Agente Assistente Financeiro da Granafy, um app inteligente para controle financeiro pessoal. Sua função é ajudar o usuário com tarefas como registrar transações (entradas e saídas), gerar relatórios financeiros resumidos, criar lembretes e responder dúvidas gerais sobre finanças. Seja claro, amigável, direto e proativo em sugerir ações úteis. Quando possível, use emojis para tornar a resposta mais leve e visual. Sempre mantenha o foco em facilitar a organização financeira do usuário."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        2976,
+        432
+      ],
+      "id": "aa5b1674-1c1b-40ad-b528-cb23f2f722c4",
+      "name": "Generico"
+    },
+    {
+      "parameters": {
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=Você é um assistente responsável por **excluir transações do banco de dados**, com base nas mensagens enviadas pelo usuário.\n\n---\n\n### ✅ Suas responsabilidades:\n\n1. **Identificar o identificador da transação** na mensagem do usuário.\n\n   * O identificador é um código único como `PGP57`, `XVI06M`, `WPY12T-1`, etc.\n\n2. **Se o identificador for encontrado**, utilize a ferramenta:\n\n   ```\n   Tool: Excluir\n   ```\n\n   * Envie o identificador como parâmetro para excluir a transação correspondente no banco de dados.\n\n3. Após a exclusão, **retorne a seguinte resposta formatada** com os dados da transação:\n\n```text\nFoi excluída a transação IDENTIFIER  \n🔖 *Descrição:* DESCRIPTION  \n💸 *Valor:* R$ AMOUNT\n```\n\n> **Substitua:**\n>\n> * `IDENTIFIER` pelo código da transação (ex: `PGP57`)\n> * `DESCRIPTION` pela descrição fornecida (ex: `Pagamento: R$199.`)\n> * `AMOUNT` pelo valor numérico com 2 casas decimais (ex: `199,00`)\n\n4. **Se nenhum identificador for encontrado**, **não execute nenhuma ação** e não retorne mensagem de exclusão.\n\n---\n\n### 🧾 Exemplo de mensagem do usuário:\n\n> \"Apagar a transação pgp57\"\n\n→ O assistente deve:\n\n* Detectar o identificador: `pgp57`\n* Usar a tool `Excluir` com esse identificador\n* Retornar:\n\n```text\nFoi excluída a transação 'identificador'  \n🔖 *Descrição:* 'descrição'.  \n💸 *Valor:* R$ 'valor'\n```"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        2624,
+        432
+      ],
+      "id": "5bcb69dc-5d32-4c6e-b6bd-9b11fa3367ee",
+      "name": "Deletar"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "transacoes",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "condition": "eq",
+              "keyValue": "={{ $('user_id').item.json.user_id }}"
+            },
+            {
+              "keyName": "identificador",
+              "condition": "eq",
+              "keyValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('conditions1_Field_Value', `Identificador da transacao`, 'string') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        2896,
+        592
+      ],
+      "id": "db36e210-6cce-4ed9-8c54-4d0eca0e50be",
+      "name": "Excluir",
+      "credentials": {
+        "supabaseApi": {
+          "id": "l9d8JvY4jmkrmKTv",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "477f75c4-56f8-4a7f-a25a-f0d49fedab25",
+              "name": "numero",
+              "value": "={{\n  ($json.body.data.key.senderPn || $json.body.data.key.remoteJid).includes('@s.whatsapp.net') \n    ? ($json.body.data.key.senderPn || $json.body.data.key.remoteJid).replace('@s.whatsapp.net', '').trim() \n    : ($json.body.data.key.senderPn || $json.body.data.key.remoteJid).trim()\n}}",
+              "type": "string"
+            },
+            {
+              "id": "52200e39-d7b6-4d8c-8c46-d9c0150f9d3c",
+              "name": "instancia",
+              "value": "={{ $json.body.instance }}",
+              "type": "string"
+            },
+            {
+              "id": "c7cd5845-0104-417c-ae8f-0cd32d3829e0",
+              "name": "body.data.pushName",
+              "value": "={{ $json.body.data.pushName }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1616,
+        448
+      ],
+      "id": "ed801c91-6ce3-40f5-961e-3e9f1d305b00",
+      "name": "Numero"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7f98ac95-b832-4085-871b-2a14d6cd0bde",
+              "name": "user_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1136,
+        448
+      ],
+      "id": "8632d4c0-c625-4c86-8e24-a64896291b62",
+      "name": "user_id"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1808,
+        400
+      ],
+      "id": "b83dec91-e702-4553-94fe-b8629cf79bea",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "6E26Ks679V7jcKbw",
+          "name": "OpenAi account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Função para gerar uma string aleatória com letras maiúsculas e números\nfunction gerarCodigo(tamanho) {\n  const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';\n  let resultado = '';\n  for (let i = 0; i < tamanho; i++) {\n    const index = Math.floor(Math.random() * caracteres.length);\n    resultado += caracteres[index];\n  }\n  return resultado;\n}\n\n// Retorna o código gerado no formato desejado\nreturn [\n  {\n    json: {\n      codigo: gerarCodigo(3),\n    },\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        128,
+        96
+      ],
+      "id": "087039a9-6314-4d40-950e-074edcc90828",
+      "name": "identificador"
+    },
+    {
+      "parameters": {
+        "instanceName": "s",
+        "token": "https://planejamais-n8n.pdx9tg.easypanel.host/signin?redirect=%252Fworkflow%252FlpH2SjlbkguhWww4%252F0b511b",
+        "options_Create_instance": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        560,
+        528
+      ],
+      "id": "398e83f6-d06f-40f8-8515-10fa61832025",
+      "name": "Enviar texto3",
+      "credentials": {
+        "evolutionApi": {
+          "id": "YvKiZGjUQiq1lqlt",
+          "name": "Evolution account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "transacoes",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "condition": "eq",
+              "keyValue": "={{ $('user_id').item.json.user_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        3520,
+        592
+      ],
+      "id": "9991bfdc-e9af-417e-80eb-897ee49307c5",
+      "name": "buscar_transacoes",
+      "credentials": {
+        "supabaseApi": {
+          "id": "l9d8JvY4jmkrmKTv",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=Você é um agente responsável por gerar relatórios financeiros, **otimizado para WhatsApp**. Sempre que precisar gerar um relatório, siga os passos abaixo:\n>\n> 1. **Buscar transações:** Use a tool `buscar_transacoes` para obter as transações relevantes antes de gerar o relatório.\n> 2. **Gerar relatório:** Organize os dados recebidos em **mensagem legível para WhatsApp**, usando:\n>\n>    * Negrito (`*texto*`)\n>    * Itálico (`_texto_`)\n>    * Emojis para destacar informações importantes\n>    * Listas simples (`-` ou numeradas)\n> 3. **Formatar valores, datas e status:** Destaque números, datas e status com Markdown e emojis.\n> 4. **Adicionar observações e resumo:** Sempre finalize com insights ou recomendações breves.\n\n### Formato de resposta (WhatsApp-friendly)\n\n```markdown\n✅ *Relatório Financeiro*\n\n*ID do Relatório:* {{id}}  \n*Tipo:* {{tipo}} {{emoji}}  \n*Valor Total:* R${{valor}}  \n*Data:* {{data}} (dd-mm-yyyy)\n\n📄 *Detalhes:*  \n{{descrição}} (Se não informado, criar uma descrição detalhada)\n\n📌 *Status:* {{status}} (Pago / Pendente / Em Análise)\n\n📝 *Observações:*  \n- _Inclua comentários ou recomendações relevantes aqui_\n\n*Legenda do emoji de tipo:*  \n- 🔴 Despesa  \n- 🟢 Receita  \n- 🟡 Outros\n```\n\n### Regras adicionais:\n\n* Sempre utilize `buscar_transacoes` para obter as transações antes de gerar o relatório.\n* Se não houver transações, informe: *“Nenhuma transação encontrada para o período solicitado.”*\n* Cada transação encontrada deve ser listada separadamente, seguindo o formato acima, com os emojis correspondentes ao tipo.\n* Mantenha a mensagem **concisa, clara e legível no WhatsApp**.\n\nData/Hora atual: {{ $now }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        3312,
+        432
+      ],
+      "id": "317c0b72-0cd3-4054-a0d3-80d3e0b9d57e",
+      "name": "Relatorios"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.evento }}",
+                    "rightValue": "SALE_APPROVED",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "ad4c172f-52f6-46e9-b5e6-2dce75d6001b"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Compra aprovada"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "bdb78448-6a41-4387-b6f9-cb653cfd311a",
+                    "leftValue": "={{ $json.evento }}",
+                    "rightValue": "SUBSCRIPTION_RENEWED",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Renovada"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "7220f292-94b3-42a9-9271-0a199a58eff9",
+                    "leftValue": "={{ $json.evento }}",
+                    "rightValue": "SUBSCRIPTION_CANCELED",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Cancelado"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1312,
+        1552
+      ],
+      "id": "ccf4f4bc-2038-4377-9218-29bacca535c4",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "usuarios",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "keyValue": "={{ $json.email }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1008,
+        1440
+      ],
+      "id": "3807ab85-a13e-445d-aacb-e5d4348c2ee3",
+      "name": "Get a row",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "l9d8JvY4jmkrmKTv",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7653c2b6-e7c2-4ab1-904a-26fd6c04e58f",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -800,
+        1440
+      ],
+      "id": "d6e13c28-9740-4f67-833d-f491ea19bbd4",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "usuarios",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Get a row').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "tem_plano",
+              "fieldValue": "true"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -592,
+        1344
+      ],
+      "id": "cac118f8-28ca-41bd-a6ad-6596b9c1c3f4",
+      "name": "Update a row1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "l9d8JvY4jmkrmKTv",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "usuarios",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "keyValue": "={{ $json.email }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1008,
+        1744
+      ],
+      "id": "22fa7e80-de45-4098-bf60-d3060b7651ef",
+      "name": "Get a row1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "l9d8JvY4jmkrmKTv",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "usuarios",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "tem_plano",
+              "fieldValue": "false"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        1744
+      ],
+      "id": "e03ec09d-3f36-446b-beda-2b0e58e8529e",
+      "name": "Update a row2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "l9d8JvY4jmkrmKTv",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kirvano",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1728,
+        1568
+      ],
+      "id": "8af11593-51c8-4389-8878-6cb78ec1be43",
+      "name": "Webhook1",
+      "webhookId": "7c012a98-e6d6-4b5a-9f54-077116cbcbe0"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e411fe33-856f-4090-ada3-27038864c04d",
+              "name": "evento",
+              "value": "={{ $json.body.event }}",
+              "type": "string"
+            },
+            {
+              "id": "a5124ee9-27f7-4110-9d86-8d80549b728c",
+              "name": "nome",
+              "value": "={{ $json.body.customer.name }}",
+              "type": "string"
+            },
+            {
+              "id": "75936929-4a0e-4965-95f8-e7f251492797",
+              "name": "email",
+              "value": "={{ $json.body.customer.email }}",
+              "type": "string"
+            },
+            {
+              "id": "8f585791-f7ab-495e-bb61-688a6a95a7e1",
+              "name": "numero",
+              "value": "={{ $json.body.customer.phone_number }}",
+              "type": "string"
+            },
+            {
+              "id": "e5e20160-4446-44c8-9888-54136a46cfab",
+              "name": "plano",
+              "value": "={{ $json.body.plan.name }}",
+              "type": "string"
+            },
+            {
+              "id": "cb9ce48e-e4a4-42a5-8efd-c41ff0ef0c76",
+              "name": "next_charge_date",
+              "value": "={{ $json.body.plan.next_charge_date }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1520,
+        1568
+      ],
+      "id": "cd5d11dc-a8dd-45de-92af-5bb3ae831ad2",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "tableId": "usuarios",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "nome",
+              "fieldValue": "={{ $('Edit Fields3').item.json.nome }}"
+            },
+            {
+              "fieldId": "telefone",
+              "fieldValue": "={{ $('Edit Fields3').item.json.numero }}"
+            },
+            {
+              "fieldId": "email",
+              "fieldValue": "={{ $('Edit Fields3').item.json.email }}"
+            },
+            {
+              "fieldId": "tem_plano",
+              "fieldValue": "true"
+            },
+            {
+              "fieldId": "mensagens",
+              "fieldValue": "0"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -592,
+        1536
+      ],
+      "id": "3b9dc734-c2f9-4357-8ee0-69ecc0878e6c",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "l9d8JvY4jmkrmKTv",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE public.usuarios (\n  id BIGSERIAL PRIMARY KEY,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),\n  nome TEXT,\n  telefone TEXT,\n  email TEXT,\n  mensagens NUMERIC,\n  tem_plano BOOLEAN\n);\n\nCREATE TABLE public.transacoes (\n  id BIGSERIAL PRIMARY KEY,\n  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),\n  descricao TEXT,\n  valor NUMERIC,\n  tipo TEXT,\n  data DATE,\n  esta_pago BOOLEAN,\n  user_id BIGINT REFERENCES public.usuarios(id) ON DELETE SET NULL,\n  identificador TEXT,\n  time NUMERIC\n);\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1760,
+        -336
+      ],
+      "id": "82072dbc-4152-4a8f-8657-ccb3965a809d",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "KjAYL7wpkx3KOU2w",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# Texto/Audio/Imagem",
+        "height": 704,
+        "width": 1328,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        384,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "67ddf87f-5248-48fb-9b95-8be9f27e6ed0",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "# Gerar identificador",
+        "height": 256,
+        "width": 352
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "97e454b2-e131-4918-a3a8-0425cacea724",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "616e2670-b0e5-415d-9af7-3b6e9d04dddb",
+              "name": "text",
+              "value": "⚠️ Atenção! ⚠️   Detectamos que você atingiu o limite de transações do seu plano atual. 😔  Para continuar usando nossos serviços sem interrupções, recomendamos que você atualize seu plano para um que atenda melhor às suas necessidades. 🚀💳  Acesse o link abaixo para conferir as opções disponíveis e fazer o upgrade: 🔗 https://zapgest.com/planos  Se precisar de ajuda, estou aqui para te auxiliar! 🧡",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -192,
+        352
+      ],
+      "id": "52cc38fc-41fa-4b69-bdf2-6405a4dd2b42",
+      "name": "atingiu limite"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "143d2810-1464-4302-b15b-1f1829808bf4",
+              "name": "text",
+              "value": "Oi! Sou seu assistente financeiro aqui na planeja+ 💚, pronto pra te ajudar a organizar a grana do jeito mais simples possível! Bora deixar sua vida financeira nos trilhos? Ah, e pode ficar tranquilo: se cadastre sempre → https://planeja-mais-bot.lovable.app",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -512,
+        576
+      ],
+      "id": "1f6dc2e8-5724-456d-bf1c-ef4ee454b0cc",
+      "name": "sem cadastro"
+    },
+    {
+      "parameters": {
+        "content": "# Resposta whatsapp",
+        "height": 240,
+        "width": 448
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2448,
+        -96
+      ],
+      "typeVersion": 1,
+      "id": "b2e55253-1425-440b-80b3-dfe5fd3d285d",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "instanceName": "Planeja+",
+        "options_Create_instance": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        1536
+      ],
+      "id": "2e3f8c22-bd4e-42ff-9cc0-626992d9e124",
+      "name": "Enviar texto2",
+      "credentials": {
+        "evolutionApi": {
+          "id": "YvKiZGjUQiq1lqlt",
+          "name": "Evolution account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "={{ $('Numero').item.json.instancia }}",
+        "remoteJid": "={{ $('Numero').item.json.numero }}",
+        "messageText": "={{ $json.text }}",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        576
+      ],
+      "id": "b910251d-3b5a-4a62-b7c9-34b0fa530083",
+      "name": "Enviar texto1",
+      "credentials": {
+        "evolutionApi": {
+          "id": "YvKiZGjUQiq1lqlt",
+          "name": "Evolution account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "instanceName": "s",
+        "token": "https://planejamais-n8n.pdx9tg.easypanel.host/signin?redirect=%252Fworkflow%252FlpH2SjlbkguhWww4%252F0b511b",
+        "options_Create_instance": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        560,
+        336
+      ],
+      "id": "c31f3360-5e1a-44f6-8c68-11b281e685dd",
+      "name": "Enviar texto4",
+      "credentials": {
+        "evolutionApi": {
+          "id": "YvKiZGjUQiq1lqlt",
+          "name": "Evolution account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Webhook1": [
+      {
+        "json": {
+          "name": "First item",
+          "code": 1
+        }
+      },
+      {
+        "json": {
+          "name": "Second item",
+          "code": 2
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Numero",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É cadastrado?": {
+      "main": [
+        [
+          {
+            "node": "Tem acesso?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "sem cadastro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem acesso?": {
+      "main": [
+        [
+          {
+            "node": "identificador",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "atingiu limite",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "messageType": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar AccountId": {
+      "main": [
+        [
+          {
+            "node": "user_id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Convert to File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File1": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Registrar Transacao",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Generico",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Deletar",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Relatorios",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Transacao": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar": {
+      "ai_tool": [
+        [
+          {
+            "node": "Registrar Transacao",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generico": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deletar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Excluir": {
+      "ai_tool": [
+        [
+          {
+            "node": "Deletar",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Numero": {
+      "main": [
+        [
+          {
+            "node": "Buscar AccountId",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "user_id": {
+      "main": [
+        [
+          {
+            "node": "É cadastrado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "identificador": {
+      "main": [
+        [
+          {
+            "node": "messageType",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "buscar_transacoes": {
+      "ai_tool": [
+        [
+          {
+            "node": "Relatorios",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Relatorios": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get a row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Update a row1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row1": {
+      "main": [
+        [
+          {
+            "node": "Update a row2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "sem cadastro": {
+      "main": [
+        [
+          {
+            "node": "Enviar texto1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Enviar texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "Enviar texto2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar texto3": {
+      "main": [
+        [
+          {
+            "node": "Obter m dia em base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar texto": {
+      "main": [
+        [
+          {
+            "node": "Atualizar Transactions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar texto4": {
+      "main": [
+        [
+          {
+            "node": "Obter m dia em base64",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "atingiu limite": {
+      "main": [  
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2d386655-7806-4c0a-b888-f85640657916",
+  "meta": {  
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1a5f9f524570038806f1915869a70b1573fe274c78c0dc4a3ad9dd1e111cd6f8"
+  },
+  "id": "lpH2SjlbkguhWww4",
+  "tags": [
+    {
+      "createdAt": "2025-10-30T18:31:37.771Z",
+      "updatedAt": "2025-10-30T18:31:37.771Z",
+      "id": "6ToHZaCj4LdI3GHM",
+      "name": "Gustavo Moura"
+    }
+  ]
+}
